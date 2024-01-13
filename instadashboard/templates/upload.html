@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zip File Uploader</title>
+
+    <!-- Add Bootstrap CSS link -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+
+    <h1 class="mb-4">Zip File Uploader</h1>
+
+    <form id="uploadForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="zipFile">Choose a zip file:</label>
+            <input type="file" class="form-control-file" id="zipFile" name="zipFile" accept=".zip" required>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="closeFriends()">Close Friends</button>
+        <button type="button" class="btn btn-primary" onclick="hideStoryFrom()">Hide Story from</button>
+        <button type="button" class="btn btn-primary" onclick="unfollowers()">Unfollowers</button>
+    </form>
+
+    <div id="result" class="mt-4"></div>
+
+    <!-- Add Bootstrap JS and Popper.js script links -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+    <script>
+        function closeFriends() {
+            var formData = new FormData(document.getElementById('uploadForm'));
+            formData.append('type', 'close_friends');
+            fetch('/upload/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result && typeof data.result === 'object') {
+                    var table = document.createElement('table');
+                    table.classList.add('table', 'table-striped');
+
+                    var headerRow = table.insertRow();
+                    var headerCell1 = headerRow.insertCell(0);
+                    var headerCell2 = headerRow.insertCell(1);
+                    var headerCell3 = headerRow.insertCell(2);
+                    headerCell1.textContent = 'Instagram Username';
+                    headerCell2.textContent = 'Profile Link';
+                    headerCell3.textContent = 'Timestamp';
+
+                    data.result.relationships_close_friends.forEach(function(friend) {
+                        var row = table.insertRow();
+                        var cell1 = row.insertCell(0);
+                        var cell2 = row.insertCell(1);
+                        var cell3 = row.insertCell(2);
+
+                        cell1.textContent = friend.string_list_data[0].value;
+                        cell2.innerHTML = '<a href="' + friend.string_list_data[0].href + '" target="_blank">' + friend.string_list_data[0].value + '</a>';
+                        cell3.textContent = new Date(friend.string_list_data[0].timestamp * 1000).toLocaleString();
+                    });
+
+                    document.getElementById('result').innerHTML = "<h2>Close friends:</h2>";
+                    document.getElementById('result').appendChild(table);
+                } else {
+                    document.getElementById('result').innerHTML = "<h2>Error:</h2>" + data.error;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function hideStoryFrom() {
+            var formData = new FormData(document.getElementById('uploadForm'));
+            formData.append('type', 'hide_story_from');
+            fetch('/upload/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result && typeof data.result === 'object') {
+                    var table = document.createElement('table');
+                    table.classList.add('table', 'table-striped');
+
+                    var headerRow = table.insertRow();
+                    var headerCell1 = headerRow.insertCell(0);
+                    var headerCell2 = headerRow.insertCell(1);
+                    var headerCell3 = headerRow.insertCell(2);
+                    headerCell1.textContent = 'Instagram Username';
+                    headerCell2.textContent = 'Profile Link';
+                    headerCell3.textContent = 'Timestamp';
+
+                    data.result.relationships_hide_stories_from.forEach(function(friend) {
+                        var row = table.insertRow();
+                        var cell1 = row.insertCell(0);
+                        var cell2 = row.insertCell(1);
+                        var cell3 = row.insertCell(2);
+
+                        cell1.textContent = friend.string_list_data[0].value;
+                        cell2.innerHTML = '<a href="' + friend.string_list_data[0].href + '" target="_blank">' + friend.string_list_data[0].value + '</a>';
+                        cell3.textContent = new Date(friend.string_list_data[0].timestamp * 1000).toLocaleString();
+                    });
+
+                    document.getElementById('result').innerHTML = "<h2>Hide story:</h2>";
+                    document.getElementById('result').appendChild(table);
+                } else {
+                    document.getElementById('result').innerHTML = "<h2>Error:</h2>" + data.error;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function unfollowers() {
+            var formData = new FormData(document.getElementById('uploadForm'));
+            formData.append('type', 'unfollowers');
+            fetch('/upload/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result && typeof data.result === 'object') {
+                    var table = document.createElement('table');
+                    table.classList.add('table', 'table-striped');
+
+                    var headerRow = table.insertRow();
+                    var headerCell1 = headerRow.insertCell(0);
+                    headerCell1.textContent = 'Instagram Username';
+
+                    data.result.relationships_not_in_followers.forEach(function(friend) {
+                        var row = table.insertRow();
+                        var cell1 = row.insertCell(0);
+
+                        cell1.textContent = friend;
+                    });
+
+                    document.getElementById('result').innerHTML = "<h2>Unfollowers:</h2>";
+                    document.getElementById('result').appendChild(table);
+                } else {
+                    document.getElementById('result').innerHTML = "<h2>Error:</h2>" + data.error;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+
+</body>
+</html>
